@@ -4,9 +4,9 @@
 
 // Made by joao.pimentel.ferreira@gmail.com
 
-//	I don't care about code efficiency
-//	It just matters that the program can really encrypt well
-//	As much more redundacies better, more time take to decode using this proogram,
+// I don't care about code efficiency
+// it just matters that the program can really encrypt well
+// As much more redundacies better, more time take to decode using this proogram,
 //unless someone can erase them
 
 #include <assert.h>
@@ -61,7 +61,7 @@ int main(int argc, char *argv[] ) {
 		return 0;
 	}
 
-	int BLOCO=N+2+ int((strsum(argv[2])%N)/2);		 //size รณf the BLOCK in blocks
+	int BLOCO=N+2+ int((strsum(argv[2])%N)/2);  //size รณf the BLOCK in blocks
 
 	if ((file_size%N)==0){					 //to ensure confusion in the process of
 		password[N]=strsum(argv[2]);		 //codification on the sucessive cycles
@@ -218,7 +218,7 @@ void fase1b(int N, int BLOCO,char* filename,char* password,char mode){
 	for(i=0;i<BLOCO;i++)
 		pos[i]=i;
 
-	 __int8 n,aux;									//N<BLOCO
+	 __int8 n,aux;								//N<BLOCO
 	for(i=0;i<N;i++){
 		n= __int8(password[i])%(BLOCO-i);		//arrange from beggining
 		aux=pos[i+n];
@@ -252,7 +252,7 @@ void fase1b(int N, int BLOCO,char* filename,char* password,char mode){
 	}
 
 
-	for (i=0;i<BLOCO;i++)				 //where we store the data to encode
+	for (i=0;i<BLOCO;i++)			//where we store the data to encode
 		delete [] data_matrix[i];
 	delete [] data_matrix;
 	delete [] pos;
