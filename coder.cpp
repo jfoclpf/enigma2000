@@ -10,11 +10,13 @@
 //unless someone can erase them
 
 #include <assert.h>
-#include <fstream.h>
+#include <fstream>
 #include <iostream>
 #include <fcntl.h>
 #include <io.h>
-#include <io.h>
+#include <string.h>
+#include <sys/stat.h>
+using namespace std;
 
 void rotate_cube_matrix(char *** &,int,int,char,int);
 void xor_vect(char *, char *,int);						//vect1^vect2 and put the result in vect1
@@ -30,6 +32,7 @@ void fase4(char* , long int );
 void fase5(char* ,char* ,int, char,long int );
 void rotate_cube_matrix(char *** & ,int,int ,char ,int );
 void fase6(char*);
+long GetFileSize(std::string filename);
 
 int main(int argc, char *argv[] ) {
 
@@ -39,47 +42,46 @@ int main(int argc, char *argv[] ) {
 	}
 
 	short int N=len_str(argv[2]);			//size of the password
-	char * password = new char[N+1];		
+	char * password = new char[N+1];
 	strcpy(password,argv[2]);				//to complicate
 	password[N+1]=argv[2][N];
 
 	char mode=argv[3][0];					//mode (coder or decoder)
 
-	fstream is( argv[1], ios::binary | ios::nocreate | ios::in | ios::out);
+	fstream is( argv[1], ios::binary | ios::in | ios::out);
 	if(!is){
 		cout << "File " << argv[1] << " doesn't exist." ;
 		return 0;
 	}
 
-	long int file_size=_filelength(is.fd()); //size of the file
-	file_size-=2;							 //size of useful data
+	long int file_size=GetFileSize(argv[1]); //size of the file
 
 	if(file_size<=N){
 		cout << "The information to encode can't be less or equal the size of the passowrd";
 		return 0;
 	}
 
-	int BLOCO=N+2+unsigned int((strsum(argv[2])%N)/2);		 //size óf the BLOCK in blocks 
-	
+	int BLOCO=N+2+ int((strsum(argv[2])%N)/2);		 //size รณf the BLOCK in blocks
+
 	if ((file_size%N)==0){					 //to ensure confusion in the process of
 		password[N]=strsum(argv[2]);		 //codification on the sucessive cycles
 		N++;								 //when the file is reversed
 	}
-											 //(N<BLOCK)												
+											 //(N<BLOCK)
 	is.close();
 
 	int i,k,Ncycles;
-	unsigned __int8 n,aux,pos [6];
+	 __int8 n,aux,pos [6];
 	for(i=0;i<6;i++)                         //6 phases sequency
 		pos[i]=i+1;
 	for(i=0;i<6;i++){
-		n=unsigned __int8(password[i])%(6-i);
+		n= __int8(password[i])%(6-i);
 		aux=pos[i];
 		pos[i]=pos[i+n];
 		pos[i+n]=aux;
 	}
 	for(i=5;i>=0;i--){
-		n=unsigned __int8(password[N-1-i])%(i+1);
+		n= __int8(password[N-1-i])%(i+1);
 		aux=pos[i];
 		pos[i]=pos[i-n];
 		pos[i-n]=aux;
@@ -87,8 +89,8 @@ int main(int argc, char *argv[] ) {
 													 //The sequncy of phases depends on the passowrd
 	for(i=0;i<6;i++){
 		switch(mode=='c' ? pos[i] : pos[5-i]){
-		case 1:	
-			Ncycles=int(BLOCO*N)/8;					 //Number of cycles 
+		case 1:
+			Ncycles=int(BLOCO*N)/8;					 //Number of cycles
 			if (Ncycles%2==0)						 //Odd number because complicates the final message
 				Ncycles++;
 			if(mode=='c')
@@ -104,7 +106,7 @@ int main(int argc, char *argv[] ) {
 					fase1a(N,argv[1],password);
 				}
 			break;
-		
+
 		case 2:
 			if(mode=='c'){
 				fase2a(argv[1],password,mode);
@@ -172,30 +174,30 @@ int strsum(char* cp){ //sum all the charachters of the string
 //-- using the password string (xor) --------------------------------------------------------------
 void fase1a(int N, char * filename, char * password){
 
-	fstream is( filename, ios::binary | ios::nocreate | ios::in | ios::out);
+	fstream is( filename, ios::binary | ios::in | ios::out);
 	char* array_data=new char[N];
 	while (1){
-	
+
 		is.read(array_data,N);
 
 		if(is.eof()){				//codifies the missing piece of the message (file)
 			int lct=is.gcount();
 			is.close();
 
-			fstream isa( filename, ios::binary | ios::nocreate | ios::in | ios::out);
+			fstream isa( filename, ios::binary | ios::in | ios::out);
 			isa.seekp(-lct,ios::end);
-			
+
 			xor_vect(array_data,password,lct-2);
 
 			isa.write(array_data,lct);
 			isa.close();
-			
+
 			break;
-		}		
-		
+		}
+
 		xor_vect(array_data,password,N);
 		is.seekp(-N,ios::cur);
-		is.write(array_data,N);	
+		is.write(array_data,N);
 	}
 	delete array_data;
 }//-----------------------------
@@ -205,7 +207,7 @@ void fase1a(int N, char * filename, char * password){
 //-------------------- Blocks size depends on the password -----------------------------
 //-- N = size of the password --- BLOCO = size of the blocks ----- N<BLOCO<=2N ---------
 void fase1b(int N, int BLOCO,char* filename,char* password,char mode){
-  
+
 	int i;
 	char** data_matrix=new char*[BLOCO]; //create the matrix
 	for (i=0;i<BLOCO;i++)				 //where we store the data to encode
@@ -214,30 +216,30 @@ void fase1b(int N, int BLOCO,char* filename,char* password,char mode){
 	//set the new positions to N bytes blocks
 	__int8* pos= new __int8[BLOCO];
 	for(i=0;i<BLOCO;i++)
-		pos[i]=i;	
+		pos[i]=i;
 
-	unsigned __int8 n,aux;									//N<BLOCO
+	 __int8 n,aux;									//N<BLOCO
 	for(i=0;i<N;i++){
-		n=unsigned __int8(password[i])%(BLOCO-i);		//arrange from beggining
+		n= __int8(password[i])%(BLOCO-i);		//arrange from beggining
 		aux=pos[i+n];
 		pos[i+n]=pos[i];
 		pos[i]=aux;
 	}
-	for(i=0;i<N;i++){						
-		n=unsigned __int8(password[N-i-1])%(BLOCO-i);	//arrange from the end
+	for(i=0;i<N;i++){
+		n= __int8(password[N-i-1])%(BLOCO-i);	//arrange from the end
 		aux=pos[BLOCO-i-n-1];
 		pos[BLOCO-i-n-1]=pos[BLOCO-i-1];
 		pos[BLOCO-i-1]=aux;
 	}
 	//----------------------------------------
 
-	fstream is(filename, ios::binary | ios::nocreate | ios::in | ios::out);
+	fstream is(filename, ios::binary | ios::in | ios::out);
 	while(1){
-		
+
 		//insert in the new positions
 		for (i=0;i<BLOCO;i++)
-			is.read(data_matrix[mode=='c'?pos[i]:i],N); 
-	
+			is.read(data_matrix[mode=='c'?pos[i]:i],N);
+
 		if(is.eof()){
 			is.close();
 			break;
@@ -291,7 +293,7 @@ void fase2a(char* filename,char* password,char mode){
 
 	int fh=_open(filename, _O_RDWR );
 	_setmode(fh,_O_BINARY);					//set to binary mode
-	
+
 	//fase2a
 	__int8 data1,data2,X;
 	X=(__int8(strsum(password)%255));
@@ -318,15 +320,15 @@ void fase2a(char* filename,char* password,char mode){
 }
 
 //------- Phase 2b --------------------------------------------------------------------------
-//-------------- Rotate in blocks of 2 bytes depending on the file size ---------------------	
+//-------------- Rotate in blocks of 2 bytes depending on the file size ---------------------
 void fase2b(char* filename,long int file_size,char mode){
 
 	int fh=_open(filename, _O_RDWR );
 	_setmode(fh,_O_BINARY);					//set to binary mode
 
-	int size_i=sizeof(unsigned int);
+	int size_i=sizeof( int);
 
-	unsigned int data;
+	 int data;
 
 	int br=file_size%(size_i*8);
 	if (br==0)
@@ -360,7 +362,7 @@ void fase3(char* filename, char* password, int N,char mode){
 	while(!_eof(fh)){
 		_read(fh,&data,1);
 
-		data=(index%(N+unsigned __int8(password[N-3])))==0 ? 
+		data=(index%(N+ __int8(password[N-3])))==0 ?
 			data^password[N-2] : data^password[N-1];
 
 		_lseek(fh,-1,SEEK_CUR);
@@ -392,10 +394,10 @@ void fase4(char* filename, long int file_size){
 	_write(fh,&end,1);
 
 	if (file_size%2==0){
-	
-		long int mid_pos=long int(file_size/2-1);
+
+		long int mid_pos= int(file_size/2-1);
 		_lseek(fh,mid_pos,SEEK_SET);
-		_read(fh,&beg,1);			
+		_read(fh,&beg,1);
 		_read(fh,&end,1);
 		_lseek(fh,-2,SEEK_CUR);
 		_write(fh,&end,1);
@@ -422,19 +424,19 @@ void fase5(char* filename,char* password,int N, char mode, long int file_size){
 			data_cube[i][j] = new char [N];
 	}
 
-	unsigned __int8 ** Rot_mat = new unsigned __int8 * [N];
-	for(i=0;i<N;i++)										
-		Rot_mat[i]=new unsigned __int8[3];		//Number of rotations matrix (3 -> X Y Z)
+	 __int8 ** Rot_mat = new  __int8 * [N];
+	for(i=0;i<N;i++)
+		Rot_mat[i]=new  __int8[3];		//Number of rotations matrix (3 -> X Y Z)
 
 	for(i=0;i<N;i++){
-		Rot_mat[0][i]=(unsigned __int8(password[i])%4);
-		Rot_mat[1][i]=((unsigned __int8(password[i])%7)%4);
-		Rot_mat[2][i]=(((unsigned __int8(password[i])%11)%7)%4);
+		Rot_mat[0][i]=( __int8(password[i])%4);
+		Rot_mat[1][i]=(( __int8(password[i])%7)%4);
+		Rot_mat[2][i]=((( __int8(password[i])%11)%7)%4);
 	}
 
 	int fh=_open(filename, _O_RDWR );
 	_setmode(fh,_O_BINARY);					//set to binary mode
-	
+
 	while(1){
 
 		for(i=0;i<N;i++)
@@ -453,7 +455,7 @@ void fase5(char* filename,char* password,int N, char mode, long int file_size){
 			for(i=0;i<N;i++)
 				rotate_cube_matrix(data_cube,N,Rot_mat[0][i],'Z',i);
 		}
-	
+
 		if(mode=='d'){
 			for(i=0;i<N;i++)
 				rotate_cube_matrix(data_cube,N,-Rot_mat[0][i],'Z',i);
@@ -464,7 +466,7 @@ void fase5(char* filename,char* password,int N, char mode, long int file_size){
 		}
 
 		_lseek(fh,-(N*N*N),SEEK_CUR);
-	
+
 		for(i=0;i<N;i++)
 			for(j=0;j<N;j++)
 				for(k=0;k<N;k++){
@@ -477,7 +479,7 @@ void fase5(char* filename,char* password,int N, char mode, long int file_size){
 
 	for(i=0;i<N;i++){
 		for(j=0;j<N;j++)
-			delete [] data_cube[i][j]; 
+			delete [] data_cube[i][j];
 		delete [] data_cube[i];
 	}
 	delete [] data_cube;
@@ -531,7 +533,7 @@ void rotate_cube_matrix(char *** & p_c,int N,int n,char C,int cor){
 			for (i=0;i<N;i++)
 				for(j=0;j<N;j++)
 					data_matrix[i][j]=p_m[N-i-1][N-j-1];
-		
+
 		if(n==1 || n==-3)
 			for (i=0;i<N;i++)
 				for(j=0;j<N;j++)
@@ -567,7 +569,7 @@ void rotate_cube_matrix(char *** & p_c,int N,int n,char C,int cor){
 			delete [] data_matrix[i];
 		delete [] data_matrix;
 
-		for (i=0;i<N;i++)				 
+		for (i=0;i<N;i++)
 			delete [] p_m[i];
 		delete [] p_m;
 
@@ -580,13 +582,19 @@ void fase6(char* file_name){
 
 	int fh=_open(file_name, _O_RDWR );
 	_setmode(fh,_O_BINARY);					//set to binary mode
-	
+
 	char data;
-	
+
 	_read(fh,&data,1);
 	data=data^(0x80);
 	_lseek(fh,-1,SEEK_CUR);
 	_write(fh,&data,1);
 
 	_close(fh);
+}
+
+long GetFileSize(std::string filename){
+    struct stat stat_buf;
+    int rc = stat(filename.c_str(), &stat_buf);
+    return rc == 0 ? stat_buf.st_size : -1;
 }
