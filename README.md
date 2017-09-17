@@ -1,4 +1,4 @@
-# enimga2000
+# ENIGMA 2000
 
 ENIGMA 2000 is a symmetric cryptographic algorithm developed in C++ for Windows/DOS, to encrypt any file.
 
